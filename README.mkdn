@@ -27,8 +27,8 @@ This library contains Python bindings to ioctl calls
 
 ### Contributors
 
-Roman Lisagor
-Sam Roberts
-Anoop Karollil
-Richard Feng
+* Roman Lisagor
+* Sam Roberts
+* Anoop Karollil
+* Richard Feng
 
