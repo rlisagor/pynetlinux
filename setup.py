@@ -7,5 +7,7 @@ setup(
     author = "Roman Lisagor",
     author_email = "rlisagor+pynetlinux@gmail.com",
     url = "http://github.com/rlisagor/pynetlinux",
+    license = "BSD",
+    platforms = "Linux",
     packages = ["pynetlinux"]
 )
