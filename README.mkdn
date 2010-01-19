@@ -1,4 +1,4 @@
-# PyNetLinux: Linux networking interface library for Python
+# pynetlinux: Linux network configuration library for Python
 
 This library contains Python bindings to ioctl calls
 
