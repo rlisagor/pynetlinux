@@ -9,5 +9,15 @@ setup(
     url = "http://github.com/rlisagor/pynetlinux",
     license = "BSD",
     platforms = "Linux",
-    packages = ["pynetlinux"]
+    packages = ["pynetlinux"],
+    classifiers = [
+        "Development Status :: 5 - Production/Stable",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: POSIX :: Linux",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: System :: Networking",
+        "Topic :: System :: Systems Administration"
+    ]
 )
