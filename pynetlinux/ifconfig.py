@@ -41,6 +41,14 @@ struct sockaddr {
     char         sa_data[14];
 };
 
+struct ifconf {
+    int                 ifc_len; /* size of buffer */
+    union {
+        char           *ifc_buf; /* buffer address */
+        struct ifreq   *ifc_req; /* array of structures */
+    };
+};
+
 
 // From linux/ethtool.h
 
@@ -70,6 +78,7 @@ SYSFS_NET_PATH = "/sys/class/net"
 PROCFS_NET_PATH = "/proc/net/dev"
 
 # From linux/sockios.h
+SIOCGIFCONF = 0x8912
 SIOCGIFINDEX = 0x8933
 SIOCGIFFLAGS =  0x8913
 SIOCSIFFLAGS =  0x8914
@@ -107,6 +116,9 @@ ADVERTISED_MII = (1 << 9)
 ADVERTISED_FIBRE = (1 << 10)
 ADVERTISED_BNC = (1 << 11)
 ADVERTISED_10000baseT_Full = (1 << 12)
+
+# This is probably not cross-platform
+SIZE_OF_IFREQ = 40
 
 # Globals
 sock = None
@@ -344,16 +356,42 @@ class Interface(object):
 
 
 def iterifs(physical=True):
-    ''' Iterate over all the bridges in the system. If physical is
+    ''' Iterate over all the interfaces in the system. If physical is
         true, then return only real physical interfaces (not 'lo', etc).'''
     net_files = os.listdir(SYSFS_NET_PATH)
+    interfaces = set()
+    virtual = set()
     for d in net_files:
         path = os.path.join(SYSFS_NET_PATH, d)
         if not os.path.isdir(path):
             continue
-        if physical and not os.path.exists(os.path.join(path, "device")):
-            continue
+        if not os.path.exists(os.path.join(path, "device")):
+            virtual.add(d)
+        interfaces.add(d)
+
+    # Some virtual interfaces don't show up in the above search, for example,
+    # subinterfaces (e.g. eth0:1). To find those, we have to do an ioctl
+    if not physical:
+        # ifconfig gets a max of 30 interfaces. Good enough for us too.
+        ifreqs = array.array("B", "\x00" * SIZE_OF_IFREQ * 30)
+        buf_addr, _buf_len = ifreqs.buffer_info()
+        ifconf = struct.pack("iP", SIZE_OF_IFREQ * 30, buf_addr)
+        ifconf_res = fcntl.ioctl(sockfd, SIOCGIFCONF, ifconf)
+        ifreqs_len, _ = struct.unpack("iP", ifconf_res)
+
+        assert ifreqs_len % SIZE_OF_IFREQ == 0, (
+            "Unexpected amount of data returned from ioctl. "
+            "You're probably running on an unexpected architecture")
+
+        res = ifreqs.tostring()
+        for i in range(0, ifreqs_len, SIZE_OF_IFREQ):
+            d = res[i:i+16].strip('\0')
+            interfaces.add(d)
+
+    results = interfaces - virtual if physical else interfaces
+    for d in results:
         yield Interface(d)
+
 
 def findif(name):
     for br in iterifs(True):
