@@ -124,6 +124,8 @@ class Interface(object):
     def __init__(self, name):
         self.name = name
 
+    def __repr__(self):
+        return "<%s %s at 0x%x>" % (self.__class__.__name__, self.name, id(self))
 
     def up(self):
         ''' Bring up the bridge interface. Equivalent to ifconfig [iface] up. '''
