@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name = "pynetlinux",
-    version = "1.0",
+    version = "1.1",
     description = "Linux network configuration library for Python",
     author = "Roman Lisagor",
     author_email = "rlisagor+pynetlinux@gmail.com",
