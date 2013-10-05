@@ -88,6 +88,25 @@ class Bridge(ifconfig.Interface):
     
     ip = property(get_ip)
 
+    def iterfdb(self):
+        ''' Iterate over all client addresses in the FDB of this bridge. '''
+        interfaces = dict()
+        for (index, iface) in enumerate(self.iterifs(), start=1):
+            interfaces[index] = iface
+        fdb_path = os.path.join(SYSFS_NET_PATH, self.name, "brforward")
+        with open(fdb_path, "r") as f:
+            fdb = f.read()  # proc file only works if read all at once
+            offset = 0
+            while offset < len(fdb):
+                (m1, m2, m3, m4, m5, m6, port, local, age_timer,
+                 port_hi, pad1, pad2) = struct.unpack(
+                     "BBBBBBBBIBBH", fdb[offset:offset+16])
+                mac = "%02x:%02x:%02x:%02x:%02x:%02x" % (m1, m2, m3, m4, m5, m6)
+                iface = interfaces.get(port, "unknown")
+                is_local = True if local else False
+                yield (mac, iface, is_local, age_timer)
+                offset += 16
+
 
 def shutdown():
     ''' Shut down bridge library '''
