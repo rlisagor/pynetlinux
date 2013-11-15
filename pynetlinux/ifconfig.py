@@ -219,7 +219,7 @@ class Interface(object):
             return 0
         netmask = socket.ntohl(struct.unpack('16sH2xI8x', res)[2])
 
-        return 32 - int(math.log(ctypes.c_uint32(~netmask).value + 1, 2))
+        return 32 - int(round(math.log(ctypes.c_uint32(~netmask).value + 1, 2)))
 
 
     def set_netmask(self, netmask):
