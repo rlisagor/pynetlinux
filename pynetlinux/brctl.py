@@ -17,6 +17,8 @@ SIOCDEVPRIVATE = 0x89F0
 
 # From bridge-utils if_bridge.h
 BRCTL_SET_BRIDGE_FORWARD_DELAY = 8
+BRCTL_SET_BRIDGE_STP_STATE = 14
+BRCTL_GET_BRIDGE_INFO = 6
 
 if not os.path.isdir(SYSFS_NET_PATH):
     raise ImportError("Path %s not found. This module requires sysfs." % SYSFS_NET_PATH)
@@ -64,6 +66,18 @@ class Bridge(ifconfig.Interface):
         ifreq = struct.pack('16si', self.name, devindex)
         fcntl.ioctl(ifconfig.sockfd, SIOCBRDELIF, ifreq)    
         return self
+
+    def set_stp_mode(self, status):
+        '''Set the status of spanning tree on bridge. Called using bridge.set_stp_mode([True,False])'''
+        if status is True:
+            status = 1
+        else:
+            status = 0
+        data = array.array('L', [BRCTL_SET_BRIDGE_STP_STATE, status, 0, 0])
+        buffer, _items = data.buffer_info()
+        ifreq = struct.pack('16sP', self.name, buffer)
+        fcntl.ioctl(ifconfig.sockfd, SIOCDEVPRIVATE, ifreq)
+        return True
 
     def set_forward_delay(self, delay):
         # delay is passed to kernel in "jiffies", which seems to be 100ths of a second
