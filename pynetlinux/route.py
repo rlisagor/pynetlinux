@@ -38,3 +38,30 @@ def get_default_gw():
     gw_ip = ".".join(octet_list)
             
     return gw_ip
+
+def get_interface_gw(interface):
+    """ Returns the gateway of interface """
+    octet_list = []
+    gw_from_route = None
+    f = open ('/proc/net/route', 'r')
+    for line in f:
+        words = line.split()
+        dest = words[1]
+        if ( words[0] == interface ):
+          try:
+              gw_from_route = words[2]
+              break
+          except ValueError:
+              pass
+        
+    if not gw_from_route:
+        return None 
+    
+    for i in range(8, 1, -2):
+        octet = gw_from_route[i-2:i]
+        octet = int(octet, 16)
+        octet_list.append(str(octet)) 
+    
+    gw_ip = ".".join(octet_list)
+            
+    return gw_ip
