@@ -2,7 +2,7 @@
 #   import pylinux
 # does a reasonable thing.
 
-import brctl
-import ifconfig
-import tap
-import route
+from . import brctl
+from . import ifconfig
+from . import tap
+from . import route
