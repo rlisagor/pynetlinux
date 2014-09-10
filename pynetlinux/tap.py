@@ -2,7 +2,7 @@ import fcntl
 import os
 import struct
 
-import ifconfig
+from . import ifconfig
 
 # From linux/if_tun.h
 

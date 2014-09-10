@@ -3,7 +3,7 @@ import fcntl
 import os
 import struct
 
-import ifconfig
+from . import ifconfig
 
 SYSFS_NET_PATH = "/sys/class/net"
 
