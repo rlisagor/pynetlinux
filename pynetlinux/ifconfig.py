@@ -255,8 +255,9 @@ class Interface(object):
         }
 
 
-    def set_link_mode(self, speed, duplex):
-        ''' Set the interface's link mode. '''
+    def set_link_mode(self, speed=None, duplex=None):
+        ''' Set the interface's link mode.
+            Both speed and duplex are only changed if specified. '''
         # First get the existing info
         ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00'*39))
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
@@ -264,9 +265,11 @@ class Interface(object):
         # Then modify it to reflect our needs
         #print ecmd
         ecmd[0:4] = array.array('B', struct.pack('I', ETHTOOL_SSET))
-        ecmd[12:14] = array.array('B', struct.pack('H', speed))
-        ecmd[14] = int(duplex)
-        ecmd[18] = 0 # Autonegotiation is off
+        if not speed is None:
+            ecmd[12:14] = array.array('B', struct.pack('H', speed))
+        if not duplex is None:
+            ecmd[14] = int(duplex)
+        ecmd[18] = 0  # Autonegotiation is off
         #print ecmd
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
 
