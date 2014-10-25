@@ -140,41 +140,18 @@ class Interface(object):
         return "<%s %s at 0x%x>" % (self.__class__.__name__, self.name, id(self))
 
     def up(self):
-        ''' Bring up the bridge interface. Equivalent to ifconfig [iface] up. '''
-
-        # Get existing device flags
-        ifreq = struct.pack('16sh', self.name, 0)
-        flags = struct.unpack('16sh', fcntl.ioctl(sockfd, SIOCGIFFLAGS, ifreq))[1]
-
-        # Set new flags
-        flags = flags | IFF_UP
-        ifreq = struct.pack('16sh', self.name, flags)
-        fcntl.ioctl(sockfd, SIOCSIFFLAGS, ifreq)
+        ''' Bring up the bridge interface.
+            This is equivalent to `ifconfig [iface] up`. '''
+        self._flags_set_bit(IFF_UP)
 
     def down(self):
-        ''' Bring up the bridge interface. Equivalent to ifconfig [iface] down. '''
-
-        # Get existing device flags
-        ifreq = struct.pack('16sh', self.name, 0)
-        flags = struct.unpack('16sh', fcntl.ioctl(sockfd, SIOCGIFFLAGS, ifreq))[1]
-
-        # Set new flags
-        flags = flags & ~IFF_UP
-        ifreq = struct.pack('16sh', self.name, flags)
-        fcntl.ioctl(sockfd, SIOCSIFFLAGS, ifreq)
+        ''' Bring up the bridge interface.
+            This is equivalent to `ifconfig [iface] down`. '''
+        self._flags_clear_bit(IFF_UP)
 
     def is_up(self):
         ''' Return True if the interface is up, False otherwise. '''
-
-        # Get existing device flags
-        ifreq = struct.pack('16sh', self.name, 0)
-        flags = struct.unpack('16sh', fcntl.ioctl(sockfd, SIOCGIFFLAGS, ifreq))[1]
-
-        # Set new flags
-        if flags & IFF_UP:
-            return True
-        else:
-            return False
+        return self._flags_has_bit(IFF_UP)
 
     def get_mac(self):
         ''' Obtain the device's mac address. '''
@@ -362,6 +339,40 @@ class Interface(object):
                   "tx_packets", "tx_errs", "tx_drop", "tx_fifo", "tx_colls",
                   "tx_carrier", "tx_compressed"]
         return dict(zip(titles, stats))
+
+    def _get_flags(self):
+        ''' Reads the flags for this interface using ioctl. '''
+
+        ifreq = struct.pack('16sh', self.name, 0)
+        ioresult = fcntl.ioctl(sockfd, SIOCGIFFLAGS, ifreq)
+        flags = struct.unpack('16sh', ioresult)[1]
+
+        return flags
+
+    def _set_flags(self, flags):
+        ''' Sets flags for this interface using ioctl. '''
+
+        ifreq = struct.pack('16sh', self.name, flags)
+        fcntl.ioctl(sockfd, SIOCSIFFLAGS, ifreq)
+
+    def _flags_set_bit(self, bit):
+        ''' Sets the given bit in the interface flags. '''
+
+        flags = self._get_flags()  # get existing flags
+        flags = flags | bit  # force the bit to 1
+        self._set_flags(flags)  # set the new value
+
+    def _flags_clear_bit(self, bit):
+        ''' Clears the given bit in the interface flags. '''
+
+        flags = self._get_flags()  # get existing flags
+        flags = flags & ~bit  # force the bit to 0
+        self._set_flags(flags)  # set the new value
+
+    def _flags_has_bit(self, bit):
+        ''' Checks if the given bit is set in iface flags. '''
+        flags = self._get_flags()
+        return (flags & bit)
 
     index = property(get_index)
     mac = property(get_mac, set_mac)
