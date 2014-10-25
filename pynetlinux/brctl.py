@@ -80,8 +80,10 @@ class Bridge(ifconfig.Interface):
         return True
 
     def set_forward_delay(self, delay):
-        # delay is passed to kernel in "jiffies", which seems to be 100ths of a second
-        data = array.array('L', [BRCTL_SET_BRIDGE_FORWARD_DELAY, int(delay*100), 0, 0] )
+        ''' Set the given bridge forward delay (in seconds). '''
+        # delay is passed to kernel in "jiffies" (100ths of a second)
+        jiffies = int(delay*100)
+        data = array.array('L', [BRCTL_SET_BRIDGE_FORWARD_DELAY, jiffies, 0, 0])
         buffer, _items = data.buffer_info()
         ifreq = struct.pack('16sP', self.name, buffer)
         fcntl.ioctl(ifconfig.sockfd, SIOCDEVPRIVATE, ifreq)

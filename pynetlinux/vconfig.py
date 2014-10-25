@@ -96,6 +96,7 @@ class VlanInterface(ifconfig.Interface):
                                                        SIOCSIFVLAN, vlanioc))
 
 def add_vlan(ifname, vid):
+    ''' Add a VLAN with the given id to the given interface name. '''
     vlanioc = struct.pack('i24si22x', ADD_VLAN_CMD, ifname, vid)
     try:
       fcntl.ioctl(ifconfig.sockfd, SIOCSIFVLAN, vlanioc)
@@ -111,6 +112,7 @@ def get_realdev_name(ifname):
     return result[2].rstrip('\0')
 
 def get_vid(ifname):
+    ''' Get the interface's VLAN id. '''
     vlanioc = struct.pack('i24s26x', GET_VLAN_VID_CMD, ifname)
     result = struct.unpack('i24si22x', fcntl.ioctl(ifconfig.sockfd,
                                                    SIOCGIFVLAN, vlanioc))

@@ -195,6 +195,7 @@ class Interface(object):
 
 
     def get_ip(self):
+        ''' Reads the IPv4 address from the given interface. '''
         ifreq = struct.pack('16sH14s', self.name, AF_INET, '\x00'*14)
         try:
             res = fcntl.ioctl(sockfd, SIOCGIFADDR, ifreq)
@@ -238,6 +239,7 @@ class Interface(object):
 
 
     def get_link_info(self):
+        ''' Retrieves the interface's link status. '''
         # First get link params
         ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00'*39))
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
@@ -269,6 +271,7 @@ class Interface(object):
 
 
     def set_link_mode(self, speed, duplex):
+        ''' Set the interface's link mode. '''
         # First get the existing info
         ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00'*39))
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
@@ -284,6 +287,7 @@ class Interface(object):
 
 
     def set_link_auto(self, ten=True, hundred=True, thousand=True):
+        ''' Set interface auto speed negotiation. '''
         # First get the existing info
         ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00'*39))
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
@@ -326,6 +330,7 @@ class Interface(object):
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
 
     def get_stats(self):
+        ''' Retrieves interface statistics (tx/rx bytes, packets, etc.) '''
         spl_re = re.compile("\s+")
 
         fp = open(PROCFS_NET_PATH)
@@ -395,6 +400,8 @@ def iterifs(physical=True):
 
 
 def findif(name):
+    ''' Returns the interface with the given name if it is found in the system.
+        Otherwise, return None. '''
     for br in iterifs(True):
         if name == br.name:
             return br
