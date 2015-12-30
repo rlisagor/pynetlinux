@@ -24,6 +24,9 @@ This library contains Python bindings to ioctl calls
 * route
     * Get default gateway / interface
 
+* vconfig
+    * Add/remove VLANs
+    * Get integer VLAN ID of interface
 
 ### Contributors
 
@@ -31,4 +34,7 @@ This library contains Python bindings to ioctl calls
 * Sam Roberts
 * Anoop Karollil
 * Richard Feng
-
+* Denton Gentry
+* Matthew Stone
+* Gabriel Rota
+* Robert Grant
