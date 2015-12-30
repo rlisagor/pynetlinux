@@ -1,11 +1,12 @@
+import array
+import ctypes
 import fcntl
-import os
-import re
+import math
 import socket
 import struct
-import ctypes
-import array
-import math
+
+import os
+import re
 
 """
 This file makes the following assumptions about data structures:
@@ -73,15 +74,14 @@ struct ethtool_value {
 };
 """
 
-
 SYSFS_NET_PATH = "/sys/class/net"
 PROCFS_NET_PATH = "/proc/net/dev"
 
 # From linux/sockios.h
 SIOCGIFCONF = 0x8912
 SIOCGIFINDEX = 0x8933
-SIOCGIFFLAGS =  0x8913
-SIOCSIFFLAGS =  0x8914
+SIOCGIFFLAGS = 0x8913
+SIOCSIFFLAGS = 0x8914
 SIOCGIFHWADDR = 0x8927
 SIOCSIFHWADDR = 0x8924
 SIOCGIFADDR = 0x8915
@@ -91,20 +91,20 @@ SIOCSIFNETMASK = 0x891C
 SIOCETHTOOL = 0x8946
 
 # From linux/if.h
-IFF_UP       = 0x1
+IFF_UP = 0x1
 
 # From linux/socket.h
-AF_UNIX      = 1
-AF_INET      = 2
+AF_UNIX = 1
+AF_INET = 2
 
 # From linux/ethtool.h
-ETHTOOL_GSET = 0x00000001 # Get settings
-ETHTOOL_SSET = 0x00000002 # Set settings
-ETHTOOL_GLINK = 0x0000000a # Get link status (ethtool_value)
-ETHTOOL_SPAUSEPARAM = 0x00000013 # Set pause parameters.
+ETHTOOL_GSET = 0x00000001  # Get settings
+ETHTOOL_SSET = 0x00000002  # Set settings
+ETHTOOL_GLINK = 0x0000000a  # Get link status (ethtool_value)
+ETHTOOL_SPAUSEPARAM = 0x00000013  # Set pause parameters.
 
 ADVERTISED_10baseT_Half = (1 << 0)
-ADVERTISED_10baseT_Full =(1 << 1)
+ADVERTISED_10baseT_Full = (1 << 1)
 ADVERTISED_100baseT_Half = (1 << 2)
 ADVERTISED_100baseT_Full = (1 << 3)
 ADVERTISED_1000baseT_Half = (1 << 4)
@@ -124,11 +124,11 @@ SIZE_OF_IFREQ = 40
 sock = None
 sockfd = None
 
-
 if not os.path.isdir(SYSFS_NET_PATH):
     raise ImportError("Path %s not found. This module requires sysfs." % SYSFS_NET_PATH)
 if not os.path.exists(PROCFS_NET_PATH):
     raise ImportError("Path %s not found. This module requires procfs." % PROCFS_NET_PATH)
+
 
 class Interface(object):
     ''' Class representing a Linux network device. '''
@@ -155,13 +155,12 @@ class Interface(object):
 
     def get_mac(self):
         ''' Obtain the device's mac address. '''
-        ifreq = struct.pack('16sH14s', self.name, AF_UNIX, '\x00'*14)
+        ifreq = struct.pack('16sH14s', self.name, AF_UNIX, '\x00' * 14)
         res = fcntl.ioctl(sockfd, SIOCGIFHWADDR, ifreq)
         address = struct.unpack('16sH14s', res)[2]
         mac = struct.unpack('6B8x', address)
 
         return ":".join(['%02X' % i for i in mac])
-
 
     def set_mac(self, newmac):
         ''' Set the device's mac address. Device must be down for this to
@@ -170,10 +169,9 @@ class Interface(object):
         ifreq = struct.pack('16sH6B8x', self.name, AF_UNIX, *macbytes)
         fcntl.ioctl(sockfd, SIOCSIFHWADDR, ifreq)
 
-
     def get_ip(self):
         ''' Reads the IPv4 address from the given interface. '''
-        ifreq = struct.pack('16sH14s', self.name, AF_INET, '\x00'*14)
+        ifreq = struct.pack('16sH14s', self.name, AF_INET, '\x00' * 14)
         try:
             res = fcntl.ioctl(sockfd, SIOCGIFADDR, ifreq)
         except IOError:
@@ -182,15 +180,13 @@ class Interface(object):
 
         return socket.inet_ntoa(ip)
 
-
     def set_ip(self, newip):
         ipbytes = socket.inet_aton(newip)
-        ifreq = struct.pack('16sH2s4s8s', self.name, AF_INET, '\x00'*2, ipbytes, '\x00'*8)
+        ifreq = struct.pack('16sH2s4s8s', self.name, AF_INET, '\x00' * 2, ipbytes, '\x00' * 8)
         fcntl.ioctl(sockfd, SIOCSIFADDR, ifreq)
 
-
     def get_netmask(self):
-        ifreq = struct.pack('16sH14s', self.name, AF_INET, '\x00'*14)
+        ifreq = struct.pack('16sH14s', self.name, AF_INET, '\x00' * 14)
         try:
             res = fcntl.ioctl(sockfd, SIOCGIFNETMASK, ifreq)
         except IOError:
@@ -198,15 +194,13 @@ class Interface(object):
         netmask = socket.ntohl(struct.unpack('16sH2xI8x', res)[2])
 
         return 32 - int(round(
-            math.log(ctypes.c_uint32(~netmask).value + 1, 2), 1))
-
+                math.log(ctypes.c_uint32(~netmask).value + 1, 2), 1))
 
     def set_netmask(self, netmask):
         netmask = ctypes.c_uint32(~((2 ** (32 - netmask)) - 1)).value
         nmbytes = socket.htonl(netmask)
-        ifreq = struct.pack('16sH2sI8s', self.name, AF_INET, '\x00'*2, nmbytes, '\x00'*8) 
+        ifreq = struct.pack('16sH2sI8s', self.name, AF_INET, '\x00' * 2, nmbytes, '\x00' * 8)
         fcntl.ioctl(sockfd, SIOCSIFNETMASK, ifreq)
-
 
     def get_index(self):
         ''' Convert an interface name to an index value. '''
@@ -214,13 +208,12 @@ class Interface(object):
         res = fcntl.ioctl(sockfd, SIOCGIFINDEX, ifreq)
         return struct.unpack("16si", res)[1]
 
-
     def get_link_info(self):
         ''' Retrieves the interface's link status (return type: hash),
             i.e. speed, duplex mode, etc. '''
 
         # First get link params
-        ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00'*39))
+        ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00' * 39))
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
         try:
             fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
@@ -254,30 +247,28 @@ class Interface(object):
             'up': up,
         }
 
-
     def set_link_mode(self, speed=None, duplex=None):
         ''' Set the interface's link mode.
             Both speed and duplex are only changed if specified. '''
         # First get the existing info
-        ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00'*39))
+        ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00' * 39))
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
         # Then modify it to reflect our needs
-        #print ecmd
+        # print ecmd
         ecmd[0:4] = array.array('B', struct.pack('I', ETHTOOL_SSET))
         if not speed is None:
             ecmd[12:14] = array.array('B', struct.pack('H', speed))
         if not duplex is None:
             ecmd[14] = int(duplex)
         ecmd[18] = 0  # Autonegotiation is off
-        #print ecmd
+        # print ecmd
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
-
 
     def set_link_auto(self, ten=True, hundred=True, thousand=True):
         ''' Set interface auto speed negotiation. '''
         # First get the existing info
-        ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00'*39))
+        ecmd = array.array('B', struct.pack('I39s', ETHTOOL_GSET, '\x00' * 39))
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
         # Then modify it to reflect our needs
@@ -291,13 +282,12 @@ class Interface(object):
         if thousand:
             advertise |= ADVERTISED_1000baseT_Half | ADVERTISED_1000baseT_Full
 
-        #print struct.unpack('I', ecmd[4:8].tostring())[0]
+        # print struct.unpack('I', ecmd[4:8].tostring())[0]
         newmode = struct.unpack('I', ecmd[4:8].tostring())[0] & advertise
-        #print newmode
+        # print newmode
         ecmd[8:12] = array.array('B', struct.pack('I', newmode))
         ecmd[18] = 1
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
-        
 
     def set_pause_param(self, autoneg, rx_pause, tx_pause):
         """
@@ -310,7 +300,7 @@ class Interface(object):
         # create a struct ethtool_pauseparm
         # create a struct ifreq with its .ifr_data pointing at the above
         ecmd = array.array('B', struct.pack('IIII',
-            ETHTOOL_SPAUSEPARAM, bool(autoneg), bool(rx_pause), bool(tx_pause)))
+                                            ETHTOOL_SPAUSEPARAM, bool(autoneg), bool(rx_pause), bool(tx_pause)))
         import logging
         logging.error("ecmd %r %r", self.name, ecmd)
         buf_addr, _buf_len = ecmd.buffer_info()
@@ -379,7 +369,7 @@ class Interface(object):
 
     index = property(get_index)
     mac = property(get_mac, set_mac)
-    ip  = property(get_ip, set_ip)
+    ip = property(get_ip, set_ip)
     netmask = property(get_netmask, set_netmask)
 
 
@@ -413,7 +403,7 @@ def iterifs(physical=True):
 
         res = ifreqs.tostring()
         for i in range(0, ifreqs_len, SIZE_OF_IFREQ):
-            d = res[i:i+16].strip('\0')
+            d = res[i:i + 16].strip('\0')
             interfaces.add(d)
 
     results = interfaces - virtual if physical else interfaces
@@ -428,6 +418,7 @@ def findif(name):
         if name == br.name:
             return br
     return None
+
 
 def list_ifs(physical=True):
     ''' Return a list of the names of the interfaces. If physical is
@@ -450,4 +441,3 @@ def shutdown():
 
 # Do this when loading the module
 init()
-
