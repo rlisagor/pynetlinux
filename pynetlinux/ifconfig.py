@@ -119,6 +119,7 @@ ADVERTISED_10000baseT_Full = (1 << 12)
 
 # This is probably not cross-platform
 SIZE_OF_IFREQ = 40
+NUM_INTERFACES = 1024
 
 # Globals
 sock = None
@@ -390,10 +391,10 @@ def iterifs(physical=True):
     # Some virtual interfaces don't show up in the above search, for example,
     # subinterfaces (e.g. eth0:1). To find those, we have to do an ioctl
     if not physical:
-        # ifconfig gets a max of 30 interfaces. Good enough for us too.
-        ifreqs = array.array("B", "\x00" * SIZE_OF_IFREQ * 30)
+        # ifconfig gets a max of NUM_INTERFACES interfaces.
+        ifreqs = array.array("B", "\x00" * SIZE_OF_IFREQ * NUM_INTERFACES)
         buf_addr, _buf_len = ifreqs.buffer_info()
-        ifconf = struct.pack("iP", SIZE_OF_IFREQ * 30, buf_addr)
+        ifconf = struct.pack("iP", SIZE_OF_IFREQ * NUM_INTERFACES, buf_addr)
         ifconf_res = fcntl.ioctl(sockfd, SIOCGIFCONF, ifconf)
         ifreqs_len, _ = struct.unpack("iP", ifconf_res)
 
