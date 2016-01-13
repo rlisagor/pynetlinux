@@ -274,12 +274,10 @@ class Interface(object):
         ifreq = struct.pack('16sP', self.name, ecmd.buffer_info()[0])
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
         # Then modify it to reflect our needs
-        #print ecmd
         ecmd[0:4] = array.array('B', struct.pack('I', ETHTOOL_SSET))
         ecmd[12:14] = array.array('B', struct.pack('H', speed))
         ecmd[14] = int(duplex)
         ecmd[18] = 0 # Autonegotiation is off
-        #print ecmd
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
 
 
@@ -299,9 +297,7 @@ class Interface(object):
         if thousand:
             advertise |= ADVERTISED_1000baseT_Half | ADVERTISED_1000baseT_Full
 
-        #print struct.unpack('I', ecmd[4:8].tostring())[0]
         newmode = struct.unpack('I', ecmd[4:8].tostring())[0] & advertise
-        #print newmode
         ecmd[8:12] = array.array('B', struct.pack('I', newmode))
         ecmd[18] = 1
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
@@ -319,8 +315,6 @@ class Interface(object):
         # create a struct ifreq with its .ifr_data pointing at the above
         ecmd = array.array('B', struct.pack('IIII',
             ETHTOOL_SPAUSEPARAM, bool(autoneg), bool(rx_pause), bool(tx_pause)))
-        import logging
-        logging.error("ecmd %r %r", self.name, ecmd)
         buf_addr, _buf_len = ecmd.buffer_info()
         ifreq = struct.pack('16sP', self.name, buf_addr)
         fcntl.ioctl(sockfd, SIOCETHTOOL, ifreq)
