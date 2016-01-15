@@ -152,7 +152,7 @@ class Interface(object):
         fcntl.ioctl(sockfd, SIOCSIFFLAGS, ifreq)
 
     def down(self):
-        ''' Bring up the bridge interface. Equivalent to ifconfig [iface] down. '''
+        ''' Bring down the bridge interface. Equivalent to ifconfig [iface] down. '''
 
         # Get existing device flags
         ifreq = struct.pack('16sh', self.name, 0)
