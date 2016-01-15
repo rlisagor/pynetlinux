@@ -32,10 +32,14 @@ def if2(request):
     return interface(request, 'eth2')
 
 
-def check_output(shell_cmd, regex=[], substr=[], not_regex=[], not_substr=[]):
-    assert regex or substr
+def check_output(shell_cmd, regex=[], substr=[], not_regex=[], not_substr=[],
+                 debug=False):
+    assert regex or substr or not_regex or not_substr
     output = subprocess.check_output(shell_cmd, stderr=subprocess.STDOUT,
                                      shell=True)
+    if debug:
+        print regex, substr, not_regex, not_substr
+        print output
     for s in substr:
         assert s in output
     for r in regex:

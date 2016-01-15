@@ -10,7 +10,7 @@ from tests.conftest import check_output
 def test_list_all_ifs():
     ifs = ifconfig.list_ifs(physical=False)
     expected = set(['eth0', 'eth1', 'eth2', 'lo'])
-    assert set(i.name for i in ifs) == expected
+    assert expected <= set(i.name for i in ifs)
 
 
 def test_list_ifs_physical_only():
