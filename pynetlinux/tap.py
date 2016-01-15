@@ -20,6 +20,7 @@ IFF_TAP		  = 0x0002
 IFF_NO_PI	  = 0x1000
 IFF_ONE_QUEUE = 0x2000
 
+
 class Tap(ifconfig.Interface):
     """
     An object representing a Linux tap device. This object can be used as an

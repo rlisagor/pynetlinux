@@ -388,8 +388,8 @@ def iterifs(physical=True):
         yield Interface(d)
 
 
-def findif(name):
-    for br in iterifs(True):
+def findif(name, physical=True):
+    for br in iterifs(physical):
         if name == br.name:
             return br
     return None
