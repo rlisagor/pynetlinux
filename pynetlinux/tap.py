@@ -31,10 +31,14 @@ class Tap(ifconfig.Interface):
     """
     
     # See ifconfig.py for details of ifr struct
-    def __init__(self, name=None):
+    def __init__(self, name=None, blocking=True):
         '''If name is None, the kernel will allocate a device name of the form tap#,
         where # is the lowest unused tap device number.'''
-        self.fd = open("/dev/net/tun", "w+")
+        flags = os.O_RDWR
+        if not blocking:
+            flags |= os.O_NONBLOCK
+        self._fileno = os.open("/dev/net/tun", flags)
+        self.fd = os.fdopen(self._fileno)
 
         if name is None:
             name = ""
@@ -52,9 +56,9 @@ class Tap(ifconfig.Interface):
     
     def unpersist(self):
         fcntl.ioctl(self.fd, TUNSETPERSIST, 0)
-    
+
     def fileno(self):
-        return self.fd.fileno()
+        return self._fileno
     
     def read(self, n):
         return os.read(self.fileno(), n)

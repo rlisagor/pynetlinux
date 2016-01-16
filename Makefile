@@ -6,4 +6,5 @@ vagrant-up:
 
 .PHONY: vagrant-test
 vagrant-test: vagrant-up
-	$(VAGRANT) ssh -c "cd /vagrant && sudo /opt/pynetlinux/venv/bin/py.test"
+	$(VAGRANT) ssh -c "cd /vagrant && sudo /opt/pynetlinux/venv2/bin/py.test"
+	$(VAGRANT) ssh -c "cd /vagrant && sudo /opt/pynetlinux/venv3/bin/py.test"
