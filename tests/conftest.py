@@ -24,12 +24,12 @@ def interface(request, name):
 
 @pytest.fixture
 def if1(request):
-    return interface(request, 'eth1')
+    return interface(request, b'eth1')
 
 
 @pytest.fixture
 def if2(request):
-    return interface(request, 'eth2')
+    return interface(request, b'eth2')
 
 
 def check_output(shell_cmd, regex=[], substr=[], not_regex=[], not_substr=[],
@@ -38,8 +38,8 @@ def check_output(shell_cmd, regex=[], substr=[], not_regex=[], not_substr=[],
     output = subprocess.check_output(shell_cmd, stderr=subprocess.STDOUT,
                                      shell=True)
     if debug:
-        print regex, substr, not_regex, not_substr
-        print output
+        print(regex, substr, not_regex, not_substr)
+        print(output)
     for s in substr:
         assert s in output
     for r in regex:

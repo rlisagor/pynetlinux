@@ -14,20 +14,20 @@ def bridge(request, name):
 
 @pytest.fixture
 def br1(request):
-    return bridge(request, 'br_test1')
+    return bridge(request, b'br_test1')
 
 @pytest.fixture
 def br2(request):
-    return bridge(request, 'br_test2')
+    return bridge(request, b'br_test2')
 
 
 def test_addbr_delete():
-    br = brctl.addbr('br_test')
+    br = brctl.addbr(b'br_test')
     try:
-        check_output('brctl show', substr=[br.name])
+        check_output(b'brctl show', substr=[br.name])
     finally:
         br.delete()
-    check_output('brctl show', not_substr=[br.name])
+    check_output(b'brctl show', not_substr=[br.name])
 
 
 def test_findbridge(br1):
@@ -49,54 +49,54 @@ def test_iterbridges(br1, br2):
 
 
 def test_findif_existent(br1, br2):
-    br1.addif('eth1')
-    br2.addif('eth2')
+    br1.addif(b'eth1')
+    br2.addif(b'eth2')
 
-    res = brctl.findif('eth1')
+    res = brctl.findif(b'eth1')
     assert res is not None
     assert res.name == br1.name
 
-    res = brctl.findif('eth2')
+    res = brctl.findif(b'eth2')
     assert res is not None
     assert res.name == br2.name
 
 
 def test_findif_nonexistent(br1, br2):
-    br1.addif('eth1')
-    br2.addif('eth2')
-    res = brctl.findif('foobar')
+    br1.addif(b'eth1')
+    br2.addif(b'eth2')
+    res = brctl.findif(b'foobar')
     assert res is None
 
 
 def test_addif(br1):
-    cmd = 'brctl show {}'.format(br1.name)
-    check_output(cmd, not_substr=['eth1', 'eth2'])
-    br1.addif('eth1')
-    check_output(cmd, substr=['eth1'], not_substr=['eth2'])
-    br1.addif('eth2')
-    check_output(cmd, substr=['eth1', 'eth2'])
+    cmd = b'brctl show ' + br1.name
+    check_output(cmd, not_substr=[b'eth1', b'eth2'])
+    br1.addif(b'eth1')
+    check_output(cmd, substr=[b'eth1'], not_substr=[b'eth2'])
+    br1.addif(b'eth2')
+    check_output(cmd, substr=[b'eth1', b'eth2'])
 
 
 def test_delif(br1):
-    cmd = 'brctl show {}'.format(br1.name)
-    br1.addif('eth1')
-    check_output(cmd, substr=['eth1'])
-    br1.delif('eth1')
-    check_output(cmd, not_substr=['eth1'])
+    cmd = b'brctl show ' + br1.name
+    br1.addif(b'eth1')
+    check_output(cmd, substr=[b'eth1'])
+    br1.delif(b'eth1')
+    check_output(cmd, not_substr=[b'eth1'])
 
 
 def test_listif(br1):
-    br1.addif('eth1')
-    br1.addif('eth2')
-    expected = {'eth1', 'eth2'}
+    br1.addif(b'eth1')
+    br1.addif(b'eth2')
+    expected = {b'eth1', b'eth2'}
     actual = set(br1.listif())
     assert expected == actual
 
 
 def test_iterifs(br1):
-    br1.addif('eth1')
-    br1.addif('eth2')
-    expected = {'eth1', 'eth2'}
+    br1.addif(b'eth1')
+    br1.addif(b'eth2')
+    expected = {b'eth1', b'eth2'}
     actual = set(br1.iterifs())
     assert expected == actual
 
@@ -104,8 +104,8 @@ def test_iterifs(br1):
 def test_set_forward_delay(br1):
     for value in [50, 100, 1000]:
         br1.set_forward_delay(value)
-        check_output('brctl showstp {}'.format(br1.name),
-                     regex=[r'forward delay\s+{}'.format(value)])
+        check_output(b'brctl showstp ' + br1.name,
+                     regex=[br'forward delay\s+' + str(value).encode('ascii')])
 
 
 def test_get_ip(br1):

@@ -9,13 +9,13 @@ from tests.conftest import check_output
 
 def test_list_all_ifs():
     ifs = ifconfig.list_ifs(physical=False)
-    expected = set(['eth0', 'eth1', 'eth2', 'lo'])
+    expected = set([b'eth0', b'eth1', b'eth2', b'lo'])
     assert expected <= set(i.name for i in ifs)
 
 
 def test_list_ifs_physical_only():
     ifs = ifconfig.list_ifs()
-    expected = set(['eth0', 'eth1', 'eth2'])
+    expected = set([b'eth0', b'eth1', b'eth2'])
     assert set(i.name for i in ifs) == expected
 
 
@@ -29,12 +29,12 @@ def test_findif(if1, if2):
 def test_up_down(if1):
     if1.down()
     assert not if1.is_up()
-    check_output('ip link show {}'.format(if1.name),
-                 regex=[r'{}: <.+>'.format(if1.name)], not_substr=['UP'])
+    check_output(b'ip link show ' + if1.name,
+                 regex=[if1.name + br': <.+>'], not_substr=[b'UP'])
     if1.up()
     assert if1.is_up()
-    check_output('ip link show {}'.format(if1.name),
-                 regex=[r'{}: <.+>'.format(if1.name)], substr=['UP'])
+    check_output(b'ip link show ' + if1.name,
+                 regex=[if1.name + br': <.+>'], substr=[b'UP'])
 
 
 def test_get_mac(if1):
@@ -44,8 +44,8 @@ def test_get_mac(if1):
 def test_set_mac(if1):
     if1.mac = '00:11:22:33:44:55'
     assert if1.mac == '00:11:22:33:44:55'
-    check_output('ip link show {}'.format(if1.name),
-                 substr=['link/ether 00:11:22:33:44:55'])
+    check_output(b'ip link show ' + if1.name,
+                 substr=[b'link/ether 00:11:22:33:44:55'])
 
 
 @pytest.mark.xfail
@@ -62,20 +62,20 @@ def test_get_netmask(if1):
 def test_set_netmask(if1):
     if1.netmask = 16
     assert if1.netmask == 16
-    check_output('ip addr show {}'.format(if1.name),
-                 regex=[r'inet [0-9\.]+/16'])
+    check_output(b'ip addr show ' + if1.name,
+                 regex=[br'inet [0-9\.]+/16'])
 
     if1.netmask = 21
     assert if1.netmask == 21
-    check_output('ip addr show {}'.format(if1.name),
-                 regex=[r'inet [0-9\.]+/21'])
+    check_output(b'ip addr show ' + if1.name,
+                 regex=[br'inet [0-9\.]+/21'])
 
 
 def test_get_index(if1, if2):
     for i in [if1, if2]:
-        idx = i.index
-        check_output('ip link show {}'.format(i.name),
-                     substr=['{idx}: {name}:'.format(idx=idx, name=i.name)])
+        idx = str(i.index).encode('ascii')
+        check_output(b'ip link show ' + i.name,
+                     substr=[idx + b': ' + i.name + b':'])
 
 
 @pytest.mark.xfail
@@ -89,35 +89,35 @@ def test_set_netmask_invalid(if1):
 @pytest.mark.parametrize('hundred', [True, False])
 @pytest.mark.parametrize('ten', [True, False])
 def test_set_link_auto(if1, ten, hundred, thousand):
-    expected = r'Advertised link modes:\s+'
+    expected = br'Advertised link modes:\s+'
     if ten:
-        expected += r'10baseT/Half 10baseT/Full\s+'
+        expected += br'10baseT/Half 10baseT/Full\s+'
     if hundred:
-        expected += r'100baseT/Half 100baseT/Full\s+'
+        expected += br'100baseT/Half 100baseT/Full\s+'
     if thousand:
-        expected += r'1000baseT/Full'
+        expected += br'1000baseT/Full'
 
     if1.set_link_auto(ten, hundred, thousand)
-    check_output('ethtool {}'.format(if1.name), regex=[expected])
+    check_output(b'ethtool ' + if1.name, regex=[expected])
 
 
 def test_pause_param_autonegotiate(if1):
     if1.set_pause_param(True, True, True)
-    check_output('ethtool -a {}'.format(if1.name),
-                 regex=[r'Autonegotiate:\s+on'])
+    check_output(b'ethtool -a ' + if1.name,
+                 regex=[br'Autonegotiate:\s+on'])
 
     if1.set_pause_param(False, True, True)
-    check_output('ethtool -a {}'.format(if1.name),
-                 regex=[r'Autonegotiate:\s+off'])
+    check_output(b'ethtool -a ' + if1.name,
+                 regex=[br'Autonegotiate:\s+off'])
 
 @pytest.mark.parametrize('tx', [True, False])
 @pytest.mark.parametrize('rx', [True, False])
 def test_pause_param_settings(if1, rx, tx):
     if1.set_pause_param(False, rx, tx)
     expected = [
-        r'Autonegotiate:\s+off',
-        r'RX:\s+' + ('on' if rx else 'off'),
-        r'TX:\s+' + ('on' if tx else 'off'),
+        br'Autonegotiate:\s+off',
+        br'RX:\s+' + (b'on' if rx else b'off'),
+        br'TX:\s+' + (b'on' if tx else b'off'),
     ]
-    check_output('ethtool -a {}'.format(if1.name), regex=expected)
+    check_output(b'ethtool -a ' + if1.name, regex=expected)
 

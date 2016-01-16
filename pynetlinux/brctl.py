@@ -5,7 +5,7 @@ import struct
 
 from . import ifconfig
 
-SYSFS_NET_PATH = "/sys/class/net"
+SYSFS_NET_PATH = b"/sys/class/net"
 
 # From linux/sockios.h
 SIOCBRADDBR  = 0x89a0
@@ -19,7 +19,7 @@ SIOCDEVPRIVATE = 0x89F0
 BRCTL_SET_BRIDGE_FORWARD_DELAY = 8
 
 if not os.path.isdir(SYSFS_NET_PATH):
-    raise ImportError("Path %s not found. This module requires sysfs." % SYSFS_NET_PATH)
+    raise ImportError("Path %a not found. This module requires sysfs." % SYSFS_NET_PATH)
 
 
 class Bridge(ifconfig.Interface):
@@ -31,7 +31,7 @@ class Bridge(ifconfig.Interface):
 
     def iterifs(self):
         ''' Iterate over all the interfaces in this bridge. '''
-        if_path = os.path.join(SYSFS_NET_PATH, self.name, "brif")
+        if_path = os.path.join(SYSFS_NET_PATH, self.name, b"brif")
         net_files = os.listdir(if_path)
         for iface in net_files:
             yield iface
@@ -101,7 +101,7 @@ def iterbridges():
         path = os.path.join(SYSFS_NET_PATH, d)
         if not os.path.isdir(path):
             continue
-        if os.path.exists(os.path.join(path, "bridge")):
+        if os.path.exists(os.path.join(path, b"bridge")):
             yield Bridge(d)
 
 

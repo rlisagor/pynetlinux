@@ -1,9 +1,10 @@
 import binascii
+import codecs
 import pytest
-import types
 import select
 import socket
 import struct
+
 
 from pynetlinux import tap
 from pynetlinux import ifconfig
@@ -21,7 +22,7 @@ SOL_PACKET = 263
 def test_tap_create():
     t = tap.Tap()
     assert ifconfig.findif(t.name, physical=False) is not None
-    assert isinstance(t.fd, types.FileType)
+    assert t.fd
     assert t.name
 
 
@@ -32,7 +33,7 @@ def test_tap_close():
 
 
 def test_tap_persistent():
-    name = 'test_tap'
+    name = b'test_tap'
 
     t1 = tap.Tap(name)
     t1.persist()
@@ -49,9 +50,9 @@ def test_tap_write():
     t = tap.Tap()
     pre_stats = t.get_stats()
         
-    tap_mac = ''.join(i.decode('hex') for i in t.mac.split(':'))
+    tap_mac = b''.join(codecs.decode(i, 'hex') for i in t.mac.split(':'))
     # fake ethernet packet addressed to the tap interface
-    packet = tap_mac + '\x00\x11"3DU\x90\x00fake payload'
+    packet = tap_mac + b'\x00\x11"3DU\x90\x00fake payload'
     t.write(packet)
 
     post_stats = t.get_stats()
@@ -67,10 +68,10 @@ def test_tap_read():
     # create raw layer 2 socket
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW,
                       socket.htons(ETH_P_ALL))
-    s.bind((t.name, ETH_P_ALL))
+    s.bind((t.name.decode('ascii'), ETH_P_ALL))
 
     # fake ethernet packet
-    packet = '\xde\xad\xbe\xef\xde\xad\x00\x11"3DU\x90\x00fake payload'
+    packet = b'\xde\xad\xbe\xef\xde\xad\x00\x11"3DU\x90\x00fake payload'
     s.send(packet)
 
     while True:

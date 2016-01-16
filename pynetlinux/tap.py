@@ -3,6 +3,7 @@ import os
 import struct
 
 from . import ifconfig
+from . import util
 
 # From linux/if_tun.h
 
@@ -38,15 +39,19 @@ class Tap(ifconfig.Interface):
         if not blocking:
             flags |= os.O_NONBLOCK
         self._fileno = os.open("/dev/net/tun", flags)
-        self.fd = os.fdopen(self._fileno)
+
+        if util.PY3:
+            self.fd = os.fdopen(self._fileno, 'w+b', buffering=0)
+        else:
+            self.fd = os.fdopen(self._fileno, 'w+b')
 
         if name is None:
-            name = ""
+            name = b""
 
         # TAP device with no packet information.
         ifreq = struct.pack("16sH", name, IFF_TAP | IFF_NO_PI)
         res = fcntl.ioctl(self.fd, TUNSETIFF, ifreq)
-        self.name = struct.unpack("16sH", res)[0].strip('\x00')
+        self.name = struct.unpack("16sH", res)[0].strip(b'\x00')
         
         fcntl.ioctl(self.fd, TUNSETNOCSUM, 1)
         ifconfig.Interface.__init__(self, self.name)
