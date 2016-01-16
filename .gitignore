@@ -6,4 +6,5 @@ debian/python-pynetlinux
 debian/files
 debian/*.debhelper
 debian/*.substvars
-
+.cache
+.vagrant
